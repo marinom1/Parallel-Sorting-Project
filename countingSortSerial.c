@@ -1,29 +1,43 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <time.h>
 
 //Counting Sort Serial Program
-
+int* generateRandomNumbers(int* scrambledArray, int n, int max, int min);
 int *countingSort(int* array, int n);
 
 int main(int argc, char** argv){
 
-    int n = 10; //n is the number of elements in the array
-    int scrambledArray[] = {6,2,7,4,2,12,9,1,4,3};
+    int n = 1000000; //n is the number of elements in the array
+    //int scrambledArray[] = {6,2,7,4,2,12,9,1,4,3}; //small test sample
+    int *scrambledArray = malloc(n*sizeof(int));
+    int max = 100;
+    int min = 0;
+
+   // srand ( time ( NULL)); //this makes a different seed for the randomn number generator everytime. maybe not good if we want to limit variables for timings
+    srand(5); //un-comment this if we want same set of numbers every run (good for timings?)
+    generateRandomNumbers(scrambledArray, n, max, min);
 
     //Prints out the scrambled array
-    printf("The scrambled array is: \n");
+   /* printf("The scrambled array is: \n");
     for (int i = 0; i  < n; i = i + 1) {
-        printf("%d, ", scrambledArray[i]);
+        printf("%d ", scrambledArray[i]);
+        if (i % 30 == 29 ) {
+            printf("\n");
+        }
     }
-    printf("\n");
+    printf("\n"); */
 
     int *sortedArray = countingSort(scrambledArray, n);
 
     //Prints out the sorted array
     printf("The sorted array is: \n");
     for (int i = 0; i  < n; i = i + 1) {
-        printf("%d, ", sortedArray[i]);
+        printf("%d ", sortedArray[i]);
+        if (i % 30 == 29 ) {
+            printf("\n");
+        }
     }
     printf("\n");
 }
@@ -60,4 +74,11 @@ int * countingSort(int *array, int n) {
     }
     
     return (int*) sortedArray;
+}
+
+int* generateRandomNumbers(int *scrambledArray, int n, int max, int min) {
+    
+    for (int i = 0; i < n; i = i + 1) {
+        scrambledArray[i] = rand() % (max + 1) + min;
+    }
 }
