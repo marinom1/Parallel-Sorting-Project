@@ -1,10 +1,10 @@
-CC = gcc
-LDC = gcc
+CC = mpicc
+LDC = mpicc
 LD_FLAGS =
 FLAGS =
-PROG = countingSortSerial.cx
+PROG = countingSortParallel.cx
 RM = /bin/rm
-OBJS = countingSortSerial.o
+OBJS = countingSortParallel.o
 
 #all rule
 all: $(PROG)

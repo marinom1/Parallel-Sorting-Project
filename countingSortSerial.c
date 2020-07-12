@@ -9,7 +9,7 @@ int *countingSort(int* array, int n);
 
 int main(int argc, char** argv){
 
-    int n = 1000000; //n is the number of elements in the array
+    int n = 100; //n is the number of elements in the array
     //int scrambledArray[] = {6,2,7,4,2,12,9,1,4,3}; //small test sample
     int *scrambledArray = malloc(n*sizeof(int));
     int max = 100;
@@ -20,14 +20,14 @@ int main(int argc, char** argv){
     generateRandomNumbers(scrambledArray, n, max, min);
 
     //Prints out the scrambled array
-   /* printf("The scrambled array is: \n");
+    printf("The scrambled array is: \n");
     for (int i = 0; i  < n; i = i + 1) {
         printf("%d ", scrambledArray[i]);
         if (i % 30 == 29 ) {
             printf("\n");
         }
     }
-    printf("\n"); */
+    printf("\n"); 
 
     int *sortedArray = countingSort(scrambledArray, n);
 
