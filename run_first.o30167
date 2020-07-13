@@ -1,8 +1,0 @@
-The scrambled array is: 1 6 3 2 0 5 3 1 2 4 
-sendcounts[0] = 5    -   displs[0] = 0
-sendcounts[1] = 5    -   displs[1] = 5
-Rank 0: myScrambledArray contains: 1 6 3 2 0 
-Rank 0: myCountArray is: 1 1 1 1 0 0 1 
-Rank 1: myScrambledArray contains: 5 3 1 2 4 
-Rank 1: myCountArray is: 0 1 1 1 1 1 0 
-the big myCountArray is: 1 2 2 2 1 1 1 

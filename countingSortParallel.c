@@ -19,15 +19,15 @@ int main(int argc, char** argv){
     
     int n;
     if (rank ==0) {
-        n = 10;  //n is the number of elements in the array
+        n = 13;  //n is the number of elements in the array
     }
     MPI_Bcast(&n, 1, MPI_INT, 0, MPI_COMM_WORLD);
     int remainder = ((n)%numranks);
     
     int total = 0;
     int *scrambledArray = malloc(n*sizeof(int));
-    int max = 6;
-    int min = 0;
+    int max = 10; 
+    int min = 0; //please dont change this 
     int biggestValue;
     int *sendcounts = malloc(n*sizeof(int)); 
 	int *displs = malloc(n*sizeof(int));
@@ -105,29 +105,48 @@ int main(int argc, char** argv){
 
     printf("Rank %d: myCountArray is: ", rank);
         for (int i = 0; i < max+1; i = i + 1) {
-            printf("%d ",countArray[i]);
+            printf("%d ",myCountArray[i]);
         }
     printf("\n");
 
-    MPI_Allreduce(MPI_IN_PLACE, myCountArray, n, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+    MPI_Allreduce(MPI_IN_PLACE, myCountArray, n+1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
 
-
+    
+    //at this point, myCountArray contains all the counts from all ranks summed up
     if (rank ==0) {
         printf("the big myCountArray is: ");
         for (int i = 0; i < max+1; i = i + 1) {
             printf("%d ",myCountArray[i]);
         }
+    
+    printf("\n");
+
+    //Then, store the cumulative count of each array
+    for (int i = 1; i <= max; i = i + 1) {
+        countArray[i] += countArray[i - 1];
+    }
+    printf("the cumulative countArray is: ");
+        for (int i = 0; i < max+1; i = i + 1) {
+            printf("%d ",myCountArray[i]);
+        }
+    printf("\n");
+    //Then, find index of each element from original array into count array, then puts the elements in sortedArray
+    int *sortedArray = malloc(n*sizeof(int));
+    for (int i = n - 1; i >= 0; i = i - 1) {
+        sortedArray[countArray[scrambledArray[i]] - 1] = scrambledArray[i];
+        countArray[scrambledArray[i]] = countArray[scrambledArray[i]] - 1;
     }
     
     //Prints out the sorted array
-    /*printf("The sorted array is: \n");
+    printf("The sorted array is: \n");
     for (int i = 0; i  < n; i = i + 1) {
         printf("%d ", sortedArray[i]);
         if (i % 30 == 29 ) {
             printf("\n");
         }
     }
-    printf("\n"); */
+    printf("\n"); 
+    }
     MPI_Finalize();
 }
 
@@ -141,6 +160,7 @@ int * countingSort(int *array, int n, int biggestValue, int max, int* countArray
     for (int i = 0; i < n; i = i + 1) {
         countArray[array[i]] = countArray[array[i]] + 1;
     }
+    
     //at this point, the countArray has the count of how often a value appears
     
     return (int*) countArray; /*
