@@ -9,10 +9,10 @@ int *countingSort(int* array, int n);
 
 int main(int argc, char** argv){
 
-    int n = 100; //n is the number of elements in the array
+    int n = 5; //n is the number of elements in the array
     //int scrambledArray[] = {6,2,7,4,2,12,9,1,4,3}; //small test sample
     int *scrambledArray = malloc(n*sizeof(int));
-    int max = 100;
+    int max = 6;
     int min = 0;
 
    // srand ( time ( NULL)); //this makes a different seed for the randomn number generator everytime. maybe not good if we want to limit variables for timings

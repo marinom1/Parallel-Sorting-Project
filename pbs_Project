@@ -1,6 +1,6 @@
 #!/bin/bash
 #PBS -l nodes=2:ppn=12
-#PBS -l walltime=0:00:25
+#PBS -l walltime=0:00:05
 #PBS -q batch
 #PBS -N run_first
 #PBS -j oe
