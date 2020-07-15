@@ -19,7 +19,7 @@ int main(int argc, char** argv){
     
     int n;
     if (rank ==0) {
-        n = 13;  //n is the number of elements in the array
+        n = 15;  //n is the number of elements in the array
     }
     MPI_Bcast(&n, 1, MPI_INT, 0, MPI_COMM_WORLD);
     int remainder = ((n)%numranks);
@@ -31,8 +31,8 @@ int main(int argc, char** argv){
     int biggestValue;
     int *sendcounts = malloc(n*sizeof(int)); 
 	int *displs = malloc(n*sizeof(int));
-   // srand ( time ( NULL)); //this makes a different seed for the randomn number generator everytime. maybe not good if we want to limit variables for timings
-    srand(5); //un-comment this if we want same set of numbers every run (good for timings?)
+    srand ( time ( NULL)); //this makes a different seed for the randomn number generator everytime. maybe not good if we want to limit variables for timings
+    //srand(5); //un-comment this if we want same set of numbers every run (good for timings?)
     generateRandomNumbers(scrambledArray, n, max, min);
 
     //Prints out the scrambled array
@@ -109,7 +109,14 @@ int main(int argc, char** argv){
         }
     printf("\n");
 
-    MPI_Allreduce(MPI_IN_PLACE, myCountArray, n+1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+    //MPI_Allreduce(MPI_IN_PLACE, myCountArray,n, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+
+    for (int i = 0; i < max+1; i = i + 1) { //this adds all the counts from all the ranks
+        int x = myCountArray[i];
+        MPI_Reduce(&x, &myCountArray[i],1, MPI_INT, MPI_SUM, 0,MPI_COMM_WORLD);
+    }
+
+    //MPI_Allreduce(MPI_IN_PLACE, myCountArray,n, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
 
     
     //at this point, myCountArray contains all the counts from all ranks summed up
@@ -123,7 +130,7 @@ int main(int argc, char** argv){
 
     //Then, store the cumulative count of each array
     for (int i = 1; i <= max; i = i + 1) {
-        countArray[i] += countArray[i - 1];
+        myCountArray[i] += myCountArray[i - 1];
     }
     printf("the cumulative countArray is: ");
         for (int i = 0; i < max+1; i = i + 1) {
@@ -133,8 +140,8 @@ int main(int argc, char** argv){
     //Then, find index of each element from original array into count array, then puts the elements in sortedArray
     int *sortedArray = malloc(n*sizeof(int));
     for (int i = n - 1; i >= 0; i = i - 1) {
-        sortedArray[countArray[scrambledArray[i]] - 1] = scrambledArray[i];
-        countArray[scrambledArray[i]] = countArray[scrambledArray[i]] - 1;
+        sortedArray[myCountArray[scrambledArray[i]] - 1] = scrambledArray[i];
+        myCountArray[scrambledArray[i]] = myCountArray[scrambledArray[i]] - 1;
     }
     
     //Prints out the sorted array
@@ -146,7 +153,7 @@ int main(int argc, char** argv){
         }
     }
     printf("\n"); 
-    }
+    } 
     MPI_Finalize();
 }
 
