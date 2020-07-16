@@ -1,5 +1,5 @@
-CC = mpicc
-LDC = mpicc
+CC = tau_cc.sh
+LDC = tau_cc.sh
 LD_FLAGS =
 FLAGS =
 PROG = countingSortParallel.cx

@@ -5,7 +5,13 @@
 #include <time.h>
 #include <mpi.h>
 //Counting Sort Serial Program
-int* generateRandomNumbers(int* scrambledArray, int n, int max, int min);
+int* generateRandomNumbers(int *scrambledArray, int n, int max, int min) {
+    
+    for (int i = 0; i < n; i = i + 1) {
+        scrambledArray[i] = rand() % (max + 1) + min;
+    }
+}
+
 int *countingSort(int* array, int n, int biggestValue, int max, int* countArray);
 
 int main(int argc, char** argv){
@@ -16,27 +22,36 @@ int main(int argc, char** argv){
     MPI_Comm_size(MPI_COMM_WORLD, &numranks);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Status stat;
-    
+
     int n;
+
+    /***********************************************************************
+     * I made this little section because these are the only variables we
+     * should be changing to test, time, or play around with
+    */
     if (rank ==0) {
-        n = 15;  //n is the number of elements in the array
+        //n is the number of elements in the array
+        n = 1000000000;  //1billion
+        //n = 100;
     }
+    int max = 100; //the highest value you could possibly have to sort
+    int min = 0; //please dont change this, program as is can't handle other min values
+    //srand ( time ( NULL)); //different random numbers every run
+    srand(5); //un-comment this if we want same set of numbers every run (good for timings?)
+    /***********************************************************************/
+
     MPI_Bcast(&n, 1, MPI_INT, 0, MPI_COMM_WORLD);
     int remainder = ((n)%numranks);
-    
     int total = 0;
     int *scrambledArray = malloc(n*sizeof(int));
-    int max = 10; 
-    int min = 0; //please dont change this 
     int biggestValue;
     int *sendcounts = malloc(n*sizeof(int)); 
 	int *displs = malloc(n*sizeof(int));
-    srand ( time ( NULL)); //this makes a different seed for the randomn number generator everytime. maybe not good if we want to limit variables for timings
-    //srand(5); //un-comment this if we want same set of numbers every run (good for timings?)
+    
     generateRandomNumbers(scrambledArray, n, max, min);
 
     //Prints out the scrambled array
-    if (rank ==0) {
+    /*if (rank ==0) {
         printf("The scrambled array is: ");
         for (int i = 0; i  < n; i = i + 1) {
             printf("%d ", scrambledArray[i]);
@@ -45,9 +60,8 @@ int main(int argc, char** argv){
             }
         }
     printf("\n");
-    }
+    } */
      
-
     for (int i = 0; i < numranks; i = i + 1) { //calculate what piece of work each rank gets
         sendcounts[i] = n / numranks;
         if (remainder > 0) {
@@ -59,7 +73,7 @@ int main(int argc, char** argv){
         total = total + sendcounts[i];
     }
 
-    if (rank == 0) {
+    if (rank == 0) { //prints out the calculations for how much work each rank will do
         for (int i = 0; i < numranks; i = i + 1) {
             printf("sendcounts[%d] = %d    -   displs[%d] = %d\n", i, sendcounts[i], i, displs[i]);
         }
@@ -74,7 +88,7 @@ int main(int argc, char** argv){
         }
     }
 
-    int *myScrambledArray = malloc(myN*sizeof(int));
+    int *myScrambledArray = malloc(n*sizeof(int));
     int count = 0;
     //this gives each rank their own piece of the scambled array
     if (rank == numranks-1) {
@@ -91,14 +105,14 @@ int main(int argc, char** argv){
     }
 
     //Prints out the myScrambled array
-    printf("Rank %d: myScrambledArray contains: ", rank);
+    /*printf("Rank %d: myScrambledArray contains: ", rank);
     for (int i = 0; i  < myN; i = i + 1) {
         printf("%d ", myScrambledArray[i]);
         if (i % 30 == 29 ) {
             printf("\n");
         }
     }
-    printf("\n");
+    printf("\n"); */
 
     int *countArray = malloc((max+1)*sizeof(int));
     int *myCountArray = countingSort(myScrambledArray, myN, biggestValue, max, countArray);
@@ -116,27 +130,27 @@ int main(int argc, char** argv){
         MPI_Reduce(&x, &myCountArray[i],1, MPI_INT, MPI_SUM, 0,MPI_COMM_WORLD);
     }
 
-    //MPI_Allreduce(MPI_IN_PLACE, myCountArray,n, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+    //MPI_Allreduce(MPI_IN_PLACE, myCountArray,n, MPI_INT, MPI_SUM, MPI_COMM_WORLD); //couldnt get this working properly, fix is above
 
     
     //at this point, myCountArray contains all the counts from all ranks summed up
-    if (rank ==0) {
+    /*if (rank ==0) {
         printf("the big myCountArray is: ");
         for (int i = 0; i < max+1; i = i + 1) {
             printf("%d ",myCountArray[i]);
         }
     
-    printf("\n");
+    printf("\n"); */
 
     //Then, store the cumulative count of each array
     for (int i = 1; i <= max; i = i + 1) {
         myCountArray[i] += myCountArray[i - 1];
     }
-    printf("the cumulative countArray is: ");
+    /*printf("the cumulative countArray is: ");
         for (int i = 0; i < max+1; i = i + 1) {
             printf("%d ",myCountArray[i]);
         }
-    printf("\n");
+    printf("\n"); */
     //Then, find index of each element from original array into count array, then puts the elements in sortedArray
     int *sortedArray = malloc(n*sizeof(int));
     for (int i = n - 1; i >= 0; i = i - 1) {
@@ -145,15 +159,15 @@ int main(int argc, char** argv){
     }
     
     //Prints out the sorted array
-    printf("The sorted array is: \n");
+    /*printf("The sorted array is: \n");
     for (int i = 0; i  < n; i = i + 1) {
         printf("%d ", sortedArray[i]);
         if (i % 30 == 29 ) {
             printf("\n");
         }
     }
-    printf("\n"); 
-    } 
+    printf("\n");  */
+      
     MPI_Finalize();
 }
 
@@ -188,9 +202,3 @@ int * countingSort(int *array, int n, int biggestValue, int max, int* countArray
     return (int*) sortedArray; */
 }
 
-int* generateRandomNumbers(int *scrambledArray, int n, int max, int min) {
-    
-    for (int i = 0; i < n; i = i + 1) {
-        scrambledArray[i] = rand() % (max + 1) + min;
-    }
-}
