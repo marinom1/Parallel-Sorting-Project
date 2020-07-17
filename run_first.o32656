@@ -1,0 +1,7 @@
+TAU Warning: BFD is not available in at least one part of this TAU-instrumented application! Please check to see if BFD is not shared or not present. Expect some missing BFD functionality.
+TAU Warning: Comp_gnu - BFD is not available during TAU build. Symbols may not be resolved!
+TAU Warning: BFD is not available in at least one part of this TAU-instrumented application! Please check to see if BFD is not shared or not present. Expect some missing BFD functionality.
+TAU Warning: Comp_gnu - BFD is not available during TAU build. Symbols may not be resolved!
+
+
+Program with n=1000000000 ran successfully
