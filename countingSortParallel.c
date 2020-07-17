@@ -203,4 +203,4 @@ int *countingSort(int *array, int n, int biggestValue, int max, int* countArray)
         countArray[array[i]] = countArray[array[i]] + 1;
     }
     return (int*) countArray; 
-}
+} //end countingSort
