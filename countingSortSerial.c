@@ -4,6 +4,7 @@
 #include <time.h>
 
 //Counting Sort Serial Program
+//Resources: geeksforgeeks.org
 int* generateRandomNumbers(int* scrambledArray, int n, int max, int min);
 int *countingSort(int* array, int n);
 

@@ -1,9 +1,9 @@
 //quicksort Serial 
+//Resources: geeksforgeeks.org
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include <time.h>
-
 
 void swap(int* a, int* b);
 int partition (int arr[], int low, int high);
@@ -16,7 +16,7 @@ int main(int argc, char** argv){
     int n = 100;
     int max = 100;
     int min = 0;
-    srand(5);
+    srand(6);
 
     int *scrambledArray = malloc(n*sizeof(int));
     generateRandomNumbers(scrambledArray, n, max, min);
@@ -39,21 +39,21 @@ int main(int argc, char** argv){
     return 0;
 }
 
-void swap(int* a, int* b) 
-{ 
+void swap(int* a, int* b) {
+ 
     int t = *a; 
     *a = *b; 
     *b = t; 
 }
 
-int partition (int arr[], int low, int high) 
-{ 
+int partition (int arr[], int low, int high) {
+ 
     int pivot = arr[high]; 
-    int i = (low - 1);  // index of the smaller element 
+    int i = (low - 1);  // index of smaller element 
   
-    for (int j = low; j <= high- 1; j++) 
-    { 
-        // if current element is smaller than the pivot 
+    for (int j = low; j <= high- 1; j++) {
+    
+        // if current element is smaller than pivot 
         if (arr[j] < pivot) 
         { 
             i = i + 1; 
@@ -64,11 +64,11 @@ int partition (int arr[], int low, int high)
     return (i + 1); 
 }
 
-void quickSort(int arr[], int low, int high) 
-{ 
-    if (low < high) 
-    { 
-        //pi is partitioning index, arr[p] is now at right place 
+void quickSort(int arr[], int low, int high) {
+ 
+    if (low < high) {
+     
+        //pi is partitioning index and arr[p] is currently at right place 
         int pi = partition(arr, low, high); 
   
         // Separately sort elements before 
