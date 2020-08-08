@@ -16,7 +16,7 @@ int main(int argc, char** argv){
     int n = 100;
     int max = 100;
     int min = 0;
-    srand(6);
+    srand(5);
 
     int *scrambledArray = malloc(n*sizeof(int));
     generateRandomNumbers(scrambledArray, n, max, min);
