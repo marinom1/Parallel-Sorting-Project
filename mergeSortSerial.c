@@ -6,7 +6,40 @@
  
 int *generateRandomNumbers(int *scrambledArray, int n, int max, int min);
 
-void mergeSort(int i, int j, int scrambledArray[], int tempArray[]) {
+void *mergeSort(int i, int j, int scrambledArray[], int tempArray[]);
+
+int main() {
+    int n = 100;
+    int max = 100;
+    int min = 0;
+    int i;
+
+    int *scrambledArray = malloc(n*sizeof(int));
+    int *tempArray = malloc(n*sizeof(int));
+    generateRandomNumbers(scrambledArray, n, max, min);
+    
+    printf("The scrambled array is:\n");
+    for (i = 0; i < n; i++) {
+        printf("%d ", scrambledArray[i]);
+    }
+    
+    mergeSort(0, n - 1, scrambledArray, tempArray);
+    
+    printf("\nThe sorted array is:\n"); 
+    for (i = 0; i < n; i++) {
+        printf("%d ", scrambledArray[i]);
+    }
+    
+    return 0;
+}
+
+int* generateRandomNumbers(int *scrambledArray, int n, int max, int min) {
+    for (int i = 0; i < n; i = i + 1) {
+        scrambledArray[i] = rand() % (max + 1) + min;
+    }
+}
+
+void *mergeSort(int i, int j, int scrambledArray[], int tempArray[]) {
 
     if (j <= i) {
         return;     
@@ -39,36 +72,5 @@ void mergeSort(int i, int j, int scrambledArray[], int tempArray[]) {
 
     for (k = i; k <= j; k++) {     
         scrambledArray[k] = tempArray[k];
-    }
-}
-
-int main() {
-    int n = 100;
-    int max = 100;
-    int min = 0;
-    int i;
-
-    int *scrambledArray = malloc(n*sizeof(int));
-    int *tempArray = malloc(n*sizeof(int));
-    generateRandomNumbers(scrambledArray, n, max, min);
-    
-    printf("The scrambled array is:\n");
-    for (i = 0; i < n; i++) {
-        printf("%d ", scrambledArray[i]);
-    }
-    
-    mergeSort(0, n - 1, scrambledArray, tempArray);
-    
-    printf("\nThe sorted array is:\n"); 
-    for (i = 0; i < n; i++) {
-        printf("%d ", scrambledArray[i]);
-    }
-    
-    return 0;
-}
-
-int* generateRandomNumbers(int *scrambledArray, int n, int max, int min) {
-    for (int i = 0; i < n; i = i + 1) {
-        scrambledArray[i] = rand() % (max + 1) + min;
     }
 }
