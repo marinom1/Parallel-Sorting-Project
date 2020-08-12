@@ -9,32 +9,53 @@ int *generateRandomNumbers(int *scrambledArray, int n, int max, int min);
 void *mergeSort(int i, int j, int scrambledArray[], int tempArray[]);
 
 int main() {
-    int n = 100;
+    int n = 10000000;
     int max = 100;
     int min = 0;
     int i;
+    int print;
+
+    if(n > 10) {
+       print = 0;
+    } else {
+       print = 1;
+    }
+
+    clock_t startTime, endTime;
+    double totTime;
 
     int *scrambledArray = malloc(n*sizeof(int));
     int *tempArray = malloc(n*sizeof(int));
     generateRandomNumbers(scrambledArray, n, max, min);
     
-    printf("The scrambled array is:\n");
-    for (i = 0; i < n; i++) {
-        printf("%d ", scrambledArray[i]);
+    if(print == 1) {
+        printf("The scrambled array is:\n");
+        for (i = 0; i < n; i++) {
+            printf("%d ", scrambledArray[i]);
+        }
     }
     
+    startTime = clock();
     mergeSort(0, n - 1, scrambledArray, tempArray);
-    
-    printf("\nThe sorted array is:\n"); 
-    for (i = 0; i < n; i++) {
-        printf("%d ", scrambledArray[i]);
+    endTime = clock();
+
+    totTime = ((double) (endTime - startTime)) / CLOCKS_PER_SEC;
+
+    if(print == 1) {
+        printf("\nThe sorted array is:\n"); 
+        for (i = 0; i < n; i++) {
+            printf("%d ", scrambledArray[i]);
+        }
     }
+    
+    printf("\nTotal Time: %f\n", totTime);
     
     return 0;
 }
 
 int* generateRandomNumbers(int *scrambledArray, int n, int max, int min) {
-    for (int i = 0; i < n; i = i + 1) {
+    int i;
+    for (i = 0; i < n; i = i + 1) {
         scrambledArray[i] = rand() % (max + 1) + min;
     }
 }
