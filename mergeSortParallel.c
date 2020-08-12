@@ -17,6 +17,7 @@ void Print_global_list(int scrambledArray[], int n, int rank, int numranks, MPI_
 
 int main(int argc, char** argv){
     MPI_Init(&argc, &argv);
+    double progStart = MPI_Wtime();
     int rank, numranks;
     int* scrambledArray;
     MPI_Comm comm;
@@ -31,17 +32,19 @@ int main(int argc, char** argv){
     int min = 0;
     int print;
 
-    if(n > 10) {
+    if(n > 100) {
        print = 0;
     } else {
        print = 1;
     }
     scrambledArray = malloc(numranks*n*sizeof(int));
 
-    double progStart = MPI_Wtime();
-
+    double starttime = MPI_Wtime();
     generateRandomNumbers(scrambledArray, n*numranks, max, min);
+    double endtime = MPI_Wtime();
     
+   double generateTime = endtime-starttime;
+
     if (rank == 0) {
         if(print == 1) {
           printf("Unsorted List\n");
@@ -49,22 +52,20 @@ int main(int argc, char** argv){
         }
     }
 
-    double starttime = MPI_Wtime();
     mergeSort(scrambledArray, n, rank, numranks, comm);
-    double endtime = MPI_Wtime();
-
-    printf("Rank: %d, Time: %.5f\n", rank, endtime - starttime); 
 
     if (print == 1) {
        Print_global_list(scrambledArray, n, rank, numranks, comm);
     }   
 
 
-   double progEnd = MPI_Wtime();
 
    if(rank == 0) {
         printf("\nProgram with n=%d ran successfully\n", n);
    }
+
+    double progEnd = MPI_Wtime();
+    printf("Rank: %d, Time: %.5f, gen: %.5f\n", rank, (progEnd-progStart),generateTime); 
 
     free(scrambledArray);
 
@@ -76,7 +77,7 @@ int main(int argc, char** argv){
 int getN(int rank, MPI_Comm comm) {
     int n;
     if (rank == 0) {
-        n = 10000000;
+        n = 1000000;
     }
     MPI_Bcast(&n, 1, MPI_INT, 0, comm);
     return n;
