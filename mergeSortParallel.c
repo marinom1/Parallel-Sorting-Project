@@ -5,8 +5,6 @@
 #include <time.h>
 #include <mpi.h>
 
-const int MAX = 100;
-
 int* generateRandomNumbers(int *scrambledArray, int n, int max, int min);
 int  Compare(const void* a_p, const void* b_p);
 void Print_list(int scrambledArray[], int n);
@@ -39,11 +37,7 @@ int main(int argc, char** argv){
     }
     scrambledArray = malloc(numranks*n*sizeof(int));
 
-    double starttime = MPI_Wtime();
     generateRandomNumbers(scrambledArray, n*numranks, max, min);
-    double endtime = MPI_Wtime();
-    
-   double generateTime = endtime-starttime;
 
     if (rank == 0) {
         if(print == 1) {
@@ -59,13 +53,13 @@ int main(int argc, char** argv){
     }   
 
 
+   double progEnd = MPI_Wtime();
+   printf("Rank: %d, Time: %.5f\n", rank, (progEnd-progStart)); 
 
    if(rank == 0) {
         printf("\nProgram with n=%d ran successfully\n", n);
    }
 
-    double progEnd = MPI_Wtime();
-    printf("Rank: %d, Time: %.5f, gen: %.5f\n", rank, (progEnd-progStart),generateTime); 
 
     free(scrambledArray);
 
