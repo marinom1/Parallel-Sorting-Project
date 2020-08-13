@@ -36,7 +36,7 @@ int main(int argc, char** argv){
     int n;
     int pivot;
     int test = 0;
-    int *testArray = malloc((n/2)*sizeof(int));
+    //int *testArray = malloc((n)*sizeof(int));
     /***********************************************************************
      * I made this little section because these are the only variables we
      * should be changing to test, time, or play around with
@@ -45,14 +45,14 @@ int main(int argc, char** argv){
         //n is the number of elements in the array
         //n = 1000000000;  //1billion
         //n = 100000000; //100million
-        //n = 1000000; //1 million
-        n = 12000; //68000 max?
+        n = 2000000; //1 million
+        //n = 12000; 
     }
     int max = 100; //the highest value you could possibly have to sort
     int min = 1; //please dont change this to 0 for right now
     //srand ( time ( NULL)); //different random numbers every run
     srand(5); //un-comment this if we want same set of numbers every run (good for timings?)
-    int printOutStuff = 1; //0 is false, 1 is true
+    int printOutStuff = 0; //0 is false, 1 is true
     /***********************************************************************/
 
     MPI_Bcast(&n, 1, MPI_INT, 0, MPI_COMM_WORLD);
@@ -500,9 +500,9 @@ int main(int argc, char** argv){
             }
             test = counter;
 
-            for (int i = 0; i < counter; i = i + 1) {
-                testArray[i] = newScrambledList[i];
-            }
+            // for (int i = 0; i < counter; i = i + 1) {
+            //     testArray[i] = newScrambledList[i];
+            // }
         }
         
         if (rank != 0) { //if rank is higher end //if rank isnt zero
@@ -524,20 +524,17 @@ int main(int argc, char** argv){
     }
     //have rank 0 concatenate the arrays from each rank together
     
-    int index = 0;
     if (rank == 0) { //rank zero will do most of the finishing work at the end here
         int *unsortedArray = malloc(n*sizeof(int));
         int lastCounter = 0;
-        int sendRank;
         int *sortedArray = malloc(n*sizeof(int));
-
-        
+  
         if (numranks == 4) {
             
             counter = test;
             //fill unsortedArray with rank 0's values first
             for (int i = 0; i < test; i = i + 1) {
-                unsortedArray[i] = testArray[i];
+                unsortedArray[i] = myScrambledArray[i];
                 lastCounter = lastCounter + 1;
             }
             
