@@ -19,9 +19,24 @@ int main(int argc, char** argv){
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Status stat;
 
+    if (numranks%2==1) {
+        return 0;
+    }
+    if (numranks == 6) {
+        return 0;
+    }
+    if (numranks == 10) {
+        return 0;
+    }
+    if (numranks == 12) {
+        return 0;
+    }
+
     double startTime = MPI_Wtime();
     int n;
     int pivot;
+    int test = 0;
+    int *testArray = malloc((n/2)*sizeof(int));
     /***********************************************************************
      * I made this little section because these are the only variables we
      * should be changing to test, time, or play around with
@@ -30,21 +45,20 @@ int main(int argc, char** argv){
         //n is the number of elements in the array
         //n = 1000000000;  //1billion
         //n = 100000000; //100million
-        n = 1000000; //1 million
-        //n = 68000; //68000 max?
+        //n = 1000000; //1 million
+        n = 12000; //68000 max?
     }
     int max = 100; //the highest value you could possibly have to sort
     int min = 1; //please dont change this to 0 for right now
     //srand ( time ( NULL)); //different random numbers every run
     srand(5); //un-comment this if we want same set of numbers every run (good for timings?)
-    int printOutStuff = 0; //0 is false, 1 is true
+    int printOutStuff = 1; //0 is false, 1 is true
     /***********************************************************************/
 
     MPI_Bcast(&n, 1, MPI_INT, 0, MPI_COMM_WORLD);
     int remainder = ((n)%numranks);
     int total = 0;
     int *scrambledArray = malloc(n*sizeof(int)); //the original starting array with the random ints
-    int biggestValue;
     int *sendcounts = malloc(n*sizeof(int)); 
 	int *displs = malloc(n*sizeof(int));
     generateRandomNumbers(scrambledArray, n, max, min);
@@ -122,177 +136,451 @@ int main(int argc, char** argv){
 
     int *myLowList = malloc(n*sizeof(int));
     int *myHighList = malloc(n*sizeof(int));
+    int *myLowList1 = malloc(n*sizeof(int)); //1-25
+    int *myLowList2 = malloc(n*sizeof(int)); //25-50
+    int *myHighList1 = malloc(n*sizeof(int)); //50-75
+    int *myHighList2 = malloc(n*sizeof(int)); //75-101
 
     int lowListCounter = 0;
     int highListCounter = 0;
+    int lowList1Counter = 0;
+    int lowList2Counter = 0;
+    int highList1Counter = 0;
+    int highList2Counter = 0;
 
-    //each rank divides unsorted list into low/lower than pivot and high/higher than pivot
-    for (int i = 0; i < myN; i = i + 1) {
-        if (myScrambledArray[i] < pivot) {
-            myLowList[lowListCounter] = myScrambledArray[i];
-            lowListCounter = lowListCounter + 1;
-        }
-        else {
-            myHighList[highListCounter] = myScrambledArray[i];
-            highListCounter = highListCounter + 1;
-        }
-    }
-    if (printOutStuff == 1) {
-        printf("Rank %d: pivot = %d\n", rank, pivot);
-        printf("Rank %d: myHighList is: \n", rank);
-        for (int i = 0; i < myN; i = i + 1) {
-            printf("%d ", myHighList[i]);
-            
-        }
-        printf("\n");
-
-        printf("Rank %d: myLowList is: \n", rank);
-        for (int i = 0; i < myN; i = i + 1) {
-            printf("%d ", myLowList[i]);
-        }
-        printf("\n");
-    }
+    int counter = 0;
     int halfNumRanks = numranks/2;
     int *newScrambledList = malloc(n*sizeof(int));
-    int counter = 0;
-    int numValues = 0;
-    if (rank >= halfNumRanks) { //if rank is higher end //nproblem good to here //if rank 1
-        
-        for (int i = 0; i < highListCounter; i = i + 1) {
-            newScrambledList[i] = myHighList[i];
-            counter = counter + 1;
+    //each rank divides unsorted list into low/lower than pivot and high/higher than pivot
+    if (numranks == 2) {
+        for (int i = 0; i < myN; i = i + 1) {
+            if (myScrambledArray[i] < pivot) {
+                myLowList[lowListCounter] = myScrambledArray[i];
+                lowListCounter = lowListCounter + 1;
+            }
+            else {
+                myHighList[highListCounter] = myScrambledArray[i];
+                highListCounter = highListCounter + 1;
+            }
         }
-        
-        MPI_Send(&lowListCounter, 1, MPI_INT, rank-halfNumRanks, 0, MPI_COMM_WORLD);
-        MPI_Send(myLowList, lowListCounter, MPI_INT, rank-halfNumRanks, 0, MPI_COMM_WORLD);
-        
-        MPI_Recv(&highListCounter, 1, MPI_INT, rank-halfNumRanks, 0, MPI_COMM_WORLD, NULL);
-        MPI_Recv(myHighList, highListCounter, MPI_INT, rank-halfNumRanks, 0, MPI_COMM_WORLD, NULL);
-        
-
-        //concatenate the newly received myHighList to newScrambledList
-        for (int i = 0; i < highListCounter; i = i + 1) {
-            newScrambledList[counter] = myHighList[i];
-            counter = counter + 1;
-        }
-    }
-
-    else if (rank < halfNumRanks) { //if rank is on the lower end
-        
-        for (int i = 0; i < lowListCounter; i = i + 1) {
-            newScrambledList[i] = myLowList[i];
-            counter = counter + 1;
-        }    
-        
-        MPI_Recv(&lowListCounter, 1, MPI_INT, rank+halfNumRanks, 0, MPI_COMM_WORLD, NULL);
-        MPI_Recv(myLowList, lowListCounter, MPI_INT, rank+halfNumRanks, 0, MPI_COMM_WORLD, NULL);
-
-        MPI_Send(&highListCounter, 1, MPI_INT, rank+halfNumRanks, 0, MPI_COMM_WORLD);
-        MPI_Send(myHighList, highListCounter, MPI_INT, rank+halfNumRanks, 0, MPI_COMM_WORLD); 
-           
-        
-
         if (printOutStuff == 1) {
-            printf("Rank %d: I received lowListCounter from other rank and it is: %d\n", rank, lowListCounter);
-            printf("Rank %d: I received myLowList from other rank and it contains:\n", rank);
-            for (int i = 0; i < lowListCounter; i = i + 1) {
+            printf("Rank %d: pivot = %d\n", rank, pivot);
+            printf("Rank %d: myHighList is: ", rank);
+            for (int i = 0; i < myN; i = i + 1) {
+                printf("%d ", myHighList[i]);
+                
+            }
+            printf("\n");
+
+            printf("Rank %d: myLowList is: ", rank);
+            for (int i = 0; i < myN; i = i + 1) {
                 printf("%d ", myLowList[i]);
             }
             printf("\n");
         }
-        //concatenate the newly received myLowList to newScrambledList
-        for (int i = 0; i < lowListCounter; i = i + 1) {
-            newScrambledList[counter] = myLowList[i];
-            counter = counter + 1;
-        }
-    }
-    
-    if (printOutStuff == 1) {
-        printf("Rank %d: newScrambledList before sorting is: \n", rank);
-        for (int i = 0; i < counter; i = i + 1) {
-            printf("%d ", newScrambledList[i]);
-        }
-        printf("\n");
-    }
-    //At this point, each rank should sort their new values
-    
-    quickSort(newScrambledList, 0, counter-1);
+        
+        
+        int numValues = 0;
+        if (rank >= halfNumRanks) { //if rank is higher end 
+            
+            for (int i = 0; i < highListCounter; i = i + 1) {
+                newScrambledList[i] = myHighList[i];
+                counter = counter + 1;
+            }
+            
+            MPI_Send(&lowListCounter, 1, MPI_INT, rank-halfNumRanks, 0, MPI_COMM_WORLD);
+            MPI_Send(myLowList, lowListCounter, MPI_INT, rank-halfNumRanks, 0, MPI_COMM_WORLD);
+            
+            MPI_Recv(&highListCounter, 1, MPI_INT, rank-halfNumRanks, 0, MPI_COMM_WORLD, NULL);
+            MPI_Recv(myHighList, highListCounter, MPI_INT, rank-halfNumRanks, 0, MPI_COMM_WORLD, NULL);
+            
 
-    if (printOutStuff == 1) {
-        printf("Rank %d: counter = %d\n", rank, counter);
-        printf("Rank %d: my newScrambledList after sorting is: \n", rank);
-        for (int i = 0; i < counter; i = i + 1 ) {
-            printf("%d ",newScrambledList[i]);
+            //concatenate the newly received myHighList to newScrambledList
+            for (int i = 0; i < highListCounter; i = i + 1) {
+                newScrambledList[counter] = myHighList[i];
+                counter = counter + 1;
+            }
+
+            if (numranks == 4) { //split the 2 groups into 4 groups now
+
+            }
         }
-        printf("\n");
-    }
+        else if (rank < halfNumRanks) { //if rank is on the lower end 0,1
+            
+            for (int i = 0; i < lowListCounter; i = i + 1) {
+                newScrambledList[i] = myLowList[i];
+                counter = counter + 1;
+            } 
+            MPI_Recv(&lowListCounter, 1, MPI_INT, rank+halfNumRanks, 0, MPI_COMM_WORLD, NULL);
+            MPI_Recv(myLowList, lowListCounter, MPI_INT, rank+halfNumRanks, 0, MPI_COMM_WORLD, NULL);
+
+            MPI_Send(&highListCounter, 1, MPI_INT, rank+halfNumRanks, 0, MPI_COMM_WORLD);
+            MPI_Send(myHighList, highListCounter, MPI_INT, rank+halfNumRanks, 0, MPI_COMM_WORLD);      
+
+            if (printOutStuff == 1) {
+                printf("Rank %d: I received lowListCounter from other rank and it is: %d\n", rank, lowListCounter);
+                printf("Rank %d: I received myLowList from other rank and it contains: ", rank);
+                for (int i = 0; i < lowListCounter; i = i + 1) {
+                    printf("%d ", myLowList[i]);
+                }
+                printf("\n");
+            }
+            //concatenate the newly received myLowList to newScrambledList
+            for (int i = 0; i < lowListCounter; i = i + 1) {
+                newScrambledList[counter] = myLowList[i];
+                counter = counter + 1;
+            }
+        }
+        
+        if (printOutStuff == 1) {
+            printf("Rank %d: newScrambledList before sorting is: ", rank);
+            for (int i = 0; i < counter; i = i + 1) {
+                printf("%d ", newScrambledList[i]);
+            }
+            printf("\n");
+        }
+        //At this point, each rank should sort their new values
+        
+        quickSort(newScrambledList, 0, counter-1);
+
+        if (printOutStuff == 1) {
+            printf("Rank %d: counter = %d\n", rank, counter);
+            printf("Rank %d: my newScrambledList after sorting is: ", rank);
+            for (int i = 0; i < counter; i = i + 1 ) {
+                printf("%d ",newScrambledList[i]);
+            }
+            printf("\n");
+        }
+    } //end if numranks == 2
+
+    if (numranks == 4) {
+        
+        for (int i = 0; i < myN; i = i + 1) {
+            if (myScrambledArray[i] <= 25) {
+                myLowList1[lowList1Counter] = myScrambledArray[i];
+                lowList1Counter = lowList1Counter + 1;
+            }
+            else if (myScrambledArray[i] <= 50) {
+                myLowList2[lowList2Counter] = myScrambledArray[i];
+                lowList2Counter = lowList2Counter + 1;
+            }
+            else if (myScrambledArray[i] <= 75) {
+                myHighList1[highList1Counter] = myScrambledArray[i];
+                highList1Counter = highList1Counter + 1;
+            }
+            else if (myScrambledArray[i] <= 102) {
+                myHighList2[highList2Counter] = myScrambledArray[i];
+                highList2Counter = highList2Counter + 1;
+            }
+        }
+        
+        if (printOutStuff == 1) {
+            //printf("Rank %d: pivot = %d\n", rank, pivot);
+            printf("Rank %d: myHighList1 is: ", rank);
+            for (int i = 0; i < myN; i = i + 1) {
+                printf("%d ", myHighList1[i]);
+                
+            }
+            printf("\n");
+
+            printf("Rank %d: myHighList2 is: ", rank);
+            for (int i = 0; i < myN; i = i + 1) {
+                printf("%d ", myHighList2[i]);
+                
+            }
+            printf("\n");
+            
+            printf("Rank %d: myLowList1 is: ", rank);
+            for (int i = 0; i < myN; i = i + 1) {
+                printf("%d ", myLowList1[i]);
+            }
+            printf("\n");
+
+            printf("Rank %d: myLowList2 is: ", rank);
+            for (int i = 0; i < myN; i = i + 1) {
+                printf("%d ", myLowList2[i]);
+            }
+            printf("\n");
+        }
+        int halfNumRanks = numranks/2;
+        int *newScrambledList = malloc(n*sizeof(int));
+        int counter = 0;
+        int numValues = 0;
+        if (rank == 0) { //if rank is 0
+            printf("does this print---------------------\n");
+            //fill array with own values first
+            for (int i = 0; i < lowList1Counter; i = i + 1) {
+                newScrambledList[i] = myLowList1[i];
+                counter = counter + 1;
+            }
+            
+            MPI_Send(&lowList2Counter, 1, MPI_INT, 1, 0, MPI_COMM_WORLD);
+            MPI_Send(myLowList2, lowList2Counter, MPI_INT, 1, 0, MPI_COMM_WORLD);
+            MPI_Send(&highList1Counter, 1, MPI_INT, 2, 0, MPI_COMM_WORLD);
+            MPI_Send(myHighList1, highList1Counter, MPI_INT, 2, 0, MPI_COMM_WORLD);
+            MPI_Send(&highList2Counter, 1, MPI_INT, 3, 0, MPI_COMM_WORLD);
+            MPI_Send(myHighList2, highList2Counter, MPI_INT, 3, 0, MPI_COMM_WORLD);
+            
+            MPI_Recv(&lowList1Counter, 1, MPI_INT, 1, 0, MPI_COMM_WORLD, NULL);
+            MPI_Recv(myLowList1, lowList1Counter, MPI_INT, 1, 0, MPI_COMM_WORLD, NULL);
+
+            //concatenate the newly received myLowList to newScrambledList
+            for (int i = 0; i < lowList1Counter; i = i + 1) {
+                newScrambledList[counter] = myLowList1[i];
+                counter = counter + 1;
+            }
+            MPI_Recv(&lowList1Counter, 1, MPI_INT, 2, 0, MPI_COMM_WORLD, NULL);
+            MPI_Recv(myLowList1, lowList1Counter, MPI_INT, 2, 0, MPI_COMM_WORLD, NULL);
+
+            //concatenate the newly received myLowList to newScrambledList
+            for (int i = 0; i < lowList1Counter; i = i + 1) {
+                newScrambledList[counter] = myLowList1[i];
+                counter = counter + 1;
+            }
+            MPI_Recv(&lowList1Counter, 1, MPI_INT, 3, 0, MPI_COMM_WORLD, NULL);
+            MPI_Recv(myLowList1, lowList1Counter, MPI_INT, 3, 0, MPI_COMM_WORLD, NULL);
+            
+
+            //concatenate the newly received myLowList1 to newScrambledList
+            for (int i = 0; i < lowList1Counter; i = i + 1) {
+                newScrambledList[counter] = myLowList1[i];
+                counter = counter + 1;
+            }
+
+        }
+        if (rank == 1) {
+            //fill array with own values first
+            for (int i = 0; i < lowList2Counter; i = i + 1) {
+                newScrambledList[i] = myLowList2[i];
+                counter = counter + 1;
+            }
+            
+            MPI_Recv(&lowList2Counter, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, NULL);
+            MPI_Recv(myLowList2, lowList2Counter, MPI_INT, 0, 0, MPI_COMM_WORLD, NULL);
+
+            //concatenate the newly received myLowList2 to newScrambledList
+            for (int i = 0; i < lowList2Counter; i = i + 1) {
+                newScrambledList[counter] = myLowList2[i];
+                counter = counter + 1;
+            }
+
+            MPI_Send(&lowList1Counter, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
+            MPI_Send(myLowList1, lowList1Counter, MPI_INT, 0, 0, MPI_COMM_WORLD);
+            MPI_Send(&highList1Counter, 1, MPI_INT, 2, 0, MPI_COMM_WORLD);
+            MPI_Send(myHighList1, highList1Counter, MPI_INT, 2, 0, MPI_COMM_WORLD);
+            MPI_Send(&highList2Counter, 1, MPI_INT, 3, 0, MPI_COMM_WORLD);
+            MPI_Send(myHighList2, highList2Counter, MPI_INT, 3, 0, MPI_COMM_WORLD);
+
+            MPI_Recv(&lowList2Counter, 1, MPI_INT, 2, 0, MPI_COMM_WORLD, NULL);
+            MPI_Recv(myLowList2, lowList2Counter, MPI_INT, 2, 0, MPI_COMM_WORLD, NULL);
+
+            //concatenate the newly received myLowList2 to newScrambledList
+            for (int i = 0; i < lowList2Counter; i = i + 1) {
+                newScrambledList[counter] = myLowList2[i];
+                counter = counter + 1;
+            }
+
+            MPI_Recv(&lowList2Counter, 1, MPI_INT, 3, 0, MPI_COMM_WORLD, NULL);
+            MPI_Recv(myLowList2, lowList2Counter, MPI_INT, 3, 0, MPI_COMM_WORLD, NULL);
+
+            //concatenate the newly received myLowList2 to newScrambledList
+            for (int i = 0; i < lowList2Counter; i = i + 1) {
+                newScrambledList[counter] = myLowList2[i];
+                counter = counter + 1;
+            }
+        }
+        if (rank == 2) {
+            //fill array with own values first
+            for (int i = 0; i < highList1Counter; i = i + 1) {
+                newScrambledList[i] = myHighList1[i];
+                counter = counter + 1;
+            }
+
+            MPI_Recv(&highList1Counter, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, NULL);
+            MPI_Recv(myHighList1, highList1Counter, MPI_INT, 0, 0, MPI_COMM_WORLD, NULL);
+
+            //concatenate the newly received myLowList2 to newScrambledList
+            for (int i = 0; i < highList1Counter; i = i + 1) {
+                newScrambledList[counter] = myHighList1[i];
+                counter = counter + 1;
+            }
+
+            MPI_Recv(&highList1Counter, 1, MPI_INT, 1, 0, MPI_COMM_WORLD, NULL);
+            MPI_Recv(myHighList1, highList1Counter, MPI_INT, 1, 0, MPI_COMM_WORLD, NULL);
+
+            //concatenate the newly received myLowList2 to newScrambledList
+            for (int i = 0; i < highList1Counter; i = i + 1) {
+                newScrambledList[counter] = myHighList1[i];
+                counter = counter + 1;
+            }
+
+            MPI_Send(&lowList1Counter, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
+            MPI_Send(myLowList1, lowList1Counter, MPI_INT, 0, 0, MPI_COMM_WORLD);
+            MPI_Send(&lowList2Counter, 1, MPI_INT, 1, 0, MPI_COMM_WORLD);
+            MPI_Send(myLowList2, lowList2Counter, MPI_INT, 1, 0, MPI_COMM_WORLD);
+            MPI_Send(&highList2Counter, 1, MPI_INT, 3, 0, MPI_COMM_WORLD);
+            MPI_Send(myHighList2, highList2Counter, MPI_INT, 3, 0, MPI_COMM_WORLD);
+
+            MPI_Recv(&highList1Counter, 1, MPI_INT, 3, 0, MPI_COMM_WORLD, NULL);
+            MPI_Recv(myHighList1, highList1Counter, MPI_INT, 3, 0, MPI_COMM_WORLD, NULL);
+
+            //concatenate the newly received myLowList2 to newScrambledList
+            for (int i = 0; i < highList1Counter; i = i + 1) {
+                newScrambledList[counter] = myHighList1[i];
+                counter = counter + 1;
+            }
+
+        }
+
+        if (rank == 3) {
+            //fill array with own values first
+            for (int i = 0; i < highList2Counter; i = i + 1) {
+                newScrambledList[i] = myHighList2[i];
+                counter = counter + 1;
+            }
+
+            MPI_Recv(&highList2Counter, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, NULL);
+            MPI_Recv(myHighList2, highList2Counter, MPI_INT, 0, 0, MPI_COMM_WORLD, NULL);
+
+            //concatenate the newly received myLowList2 to newScrambledList
+            for (int i = 0; i < highList2Counter; i = i + 1) {
+                newScrambledList[counter] = myHighList2[i];
+                counter = counter + 1;
+            }
+
+            MPI_Recv(&highList2Counter, 1, MPI_INT, 1, 0, MPI_COMM_WORLD, NULL);
+            MPI_Recv(myHighList2, highList2Counter, MPI_INT, 1, 0, MPI_COMM_WORLD, NULL);
+
+            //concatenate the newly received myLowList2 to newScrambledList
+            for (int i = 0; i < highList2Counter; i = i + 1) {
+                newScrambledList[counter] = myHighList2[i];
+                counter = counter + 1;
+            }
+
+            MPI_Recv(&highList2Counter, 1, MPI_INT, 2, 0, MPI_COMM_WORLD, NULL);
+            MPI_Recv(myHighList2, highList2Counter, MPI_INT, 2, 0, MPI_COMM_WORLD, NULL);
+
+            //concatenate the newly received myLowList2 to newScrambledList
+            for (int i = 0; i < highList2Counter; i = i + 1) {
+                newScrambledList[counter] = myHighList2[i];
+                counter = counter + 1;
+            }
+
+            MPI_Send(&lowList1Counter, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
+            MPI_Send(myLowList1, lowList1Counter, MPI_INT, 0, 0, MPI_COMM_WORLD);
+            MPI_Send(&lowList2Counter, 1, MPI_INT, 1, 0, MPI_COMM_WORLD);
+            MPI_Send(myLowList2, lowList2Counter, MPI_INT, 1, 0, MPI_COMM_WORLD);
+            MPI_Send(&highList1Counter, 1, MPI_INT, 2, 0, MPI_COMM_WORLD);
+            MPI_Send(myHighList1, highList1Counter, MPI_INT, 2, 0, MPI_COMM_WORLD);
+        }
+        
+        if (printOutStuff == 1) {
+            printf("Rank %d: newScrambledList before sorting is: ", rank);
+            for (int i = 0; i < counter; i = i + 1) {
+                printf("%d ", newScrambledList[i]);
+            }
+            printf("\n");
+        }
+        //At this point, each rank should sort their new values
+        
+        quickSort(newScrambledList, 0, counter-1);
+
+        if (printOutStuff == 1) {
+            printf("Rank %d: counter = %d\n", rank, counter);
+            printf("Rank %d: my newScrambledList after sorting is: ", rank);
+            for (int i = 0; i < counter; i = i + 1 ) {
+                printf("%d ",newScrambledList[i]);
+            }
+            printf("\n");
+
+        }
+        if (rank ==0) {
+            if (printOutStuff == 1) {
+                printf("rank zeroooo: counter = %d\n", counter);
+            }
+            test = counter;
+
+            for (int i = 0; i < counter; i = i + 1) {
+                testArray[i] = newScrambledList[i];
+            }
+        }
+        
+        if (rank != 0) { //if rank is higher end //if rank isnt zero
+            printf("Rank %d: my counter= %d here \n", rank, counter);
+            MPI_Send(&counter, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
+            MPI_Send(newScrambledList, counter, MPI_INT, 0, 0, MPI_COMM_WORLD);
+            
+        }
+        
+    } //end if numranks == 4
 
     //send the sorted scrambledList to rank 0
-    if (rank >= halfNumRanks) { //if rank is higher end
-        MPI_Send(&counter, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
-        MPI_Send(newScrambledList, counter, MPI_INT, 0, 0, MPI_COMM_WORLD);
+    if (numranks == 2) {
+        if (rank != 0) { //if rank is higher end //if rank isnt zero
+            //printf("Rank %d: my counter= %d here \n", rank, counter);
+            MPI_Send(&counter, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
+            MPI_Send(newScrambledList, counter, MPI_INT, 0, 0, MPI_COMM_WORLD);
+        }
     }
-    //MPI_Gather(newScrambledList, sendcounts[0], MPI_INT, recbuff, sendcounts[0], MPI_INT, 0, MPI_COMM_WORLD);
-
-    /*if (rank == 0 ) {
-        printf("recbuff[] is:\n");
-            for (int i = 0; i < n; i = i + 1) {
-                printf("%d ", recbuff[i]);
-            }
-    } */
-    
     //have rank 0 concatenate the arrays from each rank together
+    
     int index = 0;
-    if (rank == 0) {
+    if (rank == 0) { //rank zero will do most of the finishing work at the end here
         int *unsortedArray = malloc(n*sizeof(int));
         int lastCounter = 0;
         int sendRank;
         int *sortedArray = malloc(n*sizeof(int));
 
-        //fill unsortedArray with rank 0 values
-        for (int i = 0; i < counter; i = i + 1) {
-            unsortedArray[i] = newScrambledList[i];
-            lastCounter = lastCounter + 1;
-        }
-
-        //receive the sorted array piece from rank 1
-        MPI_Recv(&counter, 1, MPI_INT, 1, 0, MPI_COMM_WORLD, NULL);
-        MPI_Recv(newScrambledList, counter, MPI_INT, 1, 0, MPI_COMM_WORLD, NULL);
         
-        if (printOutStuff == 1) {
-            printf("Rank %d: I received newScrambledList from rank 1 and it contains: \n", rank);
+        if (numranks == 4) {
+            
+            counter = test;
+            //fill unsortedArray with rank 0's values first
+            for (int i = 0; i < test; i = i + 1) {
+                unsortedArray[i] = testArray[i];
+                lastCounter = lastCounter + 1;
+            }
+            
+        }
+        if (numranks == 2) {
             for (int i = 0; i < counter; i = i + 1) {
-                printf("%d ", newScrambledList[i]);
+                unsortedArray[i] = newScrambledList[i];
+                lastCounter = lastCounter + 1;
+            }
+        }
+        if (printOutStuff == 1) {
+            for (int i = 0; i < counter; i = i + 1) {
+                printf("%d ", unsortedArray[i]);
             }
             printf("\n");
-
-            printf("do we get to this point?____________________________\n");
-        }
-        int x = 0;
-        for (int i = lastCounter; i < lastCounter+counter; i = i + 1) {
-            unsortedArray[i] = newScrambledList[x];
-            //lastCounter = lastCounter + 1;
-            x = x + 1;
         }
         
-
-    //print the recbuff array
-        // if (printOutStuff == 1) {
-        //     printf("The recbuff array is:\n");
-        //     for (int i = 0; i < n; i = i + 1) {
-        //         printf("%d ",recbuff[i]);
-        //         if (i%30==29) {
-        //             printf("\n");
-        //         }
-        //     }
-        //     printf("\n");
-        // }
-
-        // for (int i = 0; i < n; i = i + 1) {
-        //     sortedArray[i] = recbuff[i];
-        // }
-
-
+        //rank 0 receives the sorted array piece from the all ranks
+        int rankCounter = 1;
+        
+        while (rankCounter < numranks) { //issue in here
+            MPI_Recv(&counter, 1, MPI_INT, rankCounter, 0, MPI_COMM_WORLD, NULL);
+            MPI_Recv(newScrambledList, counter, MPI_INT, rankCounter, 0, MPI_COMM_WORLD, NULL);
+            
+            if (printOutStuff == 1) {
+                printf("Rank %d: I received newScrambledList from a rank and it contains: ", rank);
+                for (int i = 0; i < counter; i = i + 1) {
+                    printf("%d ", newScrambledList[i]);
+                }
+                printf("\n");
+            }
+            
+            int x = 0;
+            int loopEndCondition = lastCounter + counter;
+            for (int i = lastCounter; i < loopEndCondition; i = i + 1) {
+                unsortedArray[i] = newScrambledList[x];
+                lastCounter = lastCounter + 1;
+                x = x + 1;
+            }
+            rankCounter = rankCounter + 1;
+            
+        }
+        
         //print the almost sorted array
         if (printOutStuff == 1) {
             printf("The almost sorted array is:\n");
@@ -302,19 +590,14 @@ int main(int argc, char** argv){
             printf("\n");
         }
         
-        if (numranks > 2) {
-            quickSort(unsortedArray, 0, n-1);
-        }
-        
-
         //print the sorted array
         if (printOutStuff == 1) {
             printf("The sorted array is:\n");
             for (int i = 0; i < n; i = i + 1) {
                 printf("%d ", unsortedArray[i]); //ignore the naming here
-                if (i%30 == 29) {
-                    printf("\n");
-                }
+                 if (i%30 == 29) {
+                     printf("\n");
+                 }
             }
             printf("\n");
         }
@@ -325,7 +608,6 @@ int main(int argc, char** argv){
         printf("numranks = %d\n", numranks);
 
     }
-    
     
     MPI_Finalize();
     return 0;
@@ -372,4 +654,4 @@ int* generateRandomNumbers(int *scrambledArray, int n, int max, int min) {
     for (int i = 0; i < n; i = i + 1) {
         scrambledArray[i] = rand() % (max + 1) + min;
     }
-}
+} //end program
